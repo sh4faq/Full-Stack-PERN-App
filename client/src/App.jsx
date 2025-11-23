@@ -1,0 +1,224 @@
+import { useState, useEffect } from 'react'
+import './App.css'
+
+const API_URL = 'http://localhost:3001'
+
+function App() {
+  const [merchants, setMerchants] = useState([])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [formData, setFormData] = useState({
+    merchant_name: '',
+    country: ''
+  })
+  const [editingId, setEditingId] = useState(null)
+
+  // Fetch all merchants
+  const fetchMerchants = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const response = await fetch(`${API_URL}/merchants`)
+      if (!response.ok) throw new Error('Failed to fetch merchants')
+      const data = await response.json()
+      setMerchants(data)
+    } catch (err) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Load merchants on component mount
+  useEffect(() => {
+    fetchMerchants()
+  }, [])
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    setFormData({
+      ...formData,
+      [e.target.name]: e.target.value
+    })
+  }
+
+  // Create new merchant
+  const handleCreate = async (e) => {
+    e.preventDefault()
+    if (!formData.merchant_name || !formData.country) {
+      setError('Please fill in all fields')
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/merchants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      if (!response.ok) throw new Error('Failed to create merchant')
+
+      setFormData({ merchant_name: '', country: '' })
+      fetchMerchants()
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  // Update existing merchant
+  const handleUpdate = async (e) => {
+    e.preventDefault()
+    if (!formData.merchant_name || !formData.country) {
+      setError('Please fill in all fields')
+      return
+    }
+
+    try {
+      const response = await fetch(`${API_URL}/merchants/${editingId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      })
+      if (!response.ok) throw new Error('Failed to update merchant')
+
+      setFormData({ merchant_name: '', country: '' })
+      setEditingId(null)
+      fetchMerchants()
+      setError(null)
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  // Delete merchant
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this merchant?')) return
+
+    try {
+      const response = await fetch(`${API_URL}/merchants/${id}`, {
+        method: 'DELETE'
+      })
+      if (!response.ok) throw new Error('Failed to delete merchant')
+      fetchMerchants()
+    } catch (err) {
+      setError(err.message)
+    }
+  }
+
+  // Set form for editing
+  const handleEdit = (merchant) => {
+    setEditingId(merchant.id)
+    setFormData({
+      merchant_name: merchant.merchant_name,
+      country: merchant.country
+    })
+  }
+
+  // Cancel editing
+  const handleCancel = () => {
+    setEditingId(null)
+    setFormData({ merchant_name: '', country: '' })
+  }
+
+  return (
+    <div className="App">
+      <h1>Merchant Management System</h1>
+
+      {error && <div className="error">{error}</div>}
+
+      {/* Create/Update Form */}
+      <div className="form-container">
+        <h2>{editingId ? 'Update Merchant' : 'Add New Merchant'}</h2>
+        <form onSubmit={editingId ? handleUpdate : handleCreate}>
+          <div className="form-group">
+            <label htmlFor="merchant_name">Merchant Name:</label>
+            <input
+              type="text"
+              id="merchant_name"
+              name="merchant_name"
+              value={formData.merchant_name}
+              onChange={handleInputChange}
+              placeholder="Enter merchant name"
+              required
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="country">Country:</label>
+            <input
+              type="text"
+              id="country"
+              name="country"
+              value={formData.country}
+              onChange={handleInputChange}
+              placeholder="Enter country"
+              required
+            />
+          </div>
+          <div className="form-buttons">
+            <button type="submit" className="btn-primary">
+              {editingId ? 'Update' : 'Create'}
+            </button>
+            {editingId && (
+              <button type="button" className="btn-secondary" onClick={handleCancel}>
+                Cancel
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+
+      {/* Merchants List */}
+      <div className="merchants-container">
+        <h2>All Merchants</h2>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <table className="merchants-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Merchant Name</th>
+                <th>Country</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {merchants.length === 0 ? (
+                <tr>
+                  <td colSpan="4" style={{ textAlign: 'center' }}>
+                    No merchants found. Add one above!
+                  </td>
+                </tr>
+              ) : (
+                merchants.map((merchant) => (
+                  <tr key={merchant.id}>
+                    <td>{merchant.id}</td>
+                    <td>{merchant.merchant_name}</td>
+                    <td>{merchant.country}</td>
+                    <td>
+                      <button
+                        className="btn-edit"
+                        onClick={() => handleEdit(merchant)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="btn-delete"
+                        onClick={() => handleDelete(merchant.id)}
+                      >
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+}
+
+export default App
