@@ -19,6 +19,9 @@ This is a merchant management system where you can add, view, edit, and delete m
 - **Update** existing merchant information
 - **Delete** merchants with confirmation
 - **Search** merchants by name or country
+- **Sort** table columns (ID, Name, Country) in ascending/descending order
+- **Export to CSV** download your merchant data
+- **Dark Mode** toggle between light and dark themes
 - **Statistics dashboard** showing totals and filtered counts
 - **Responsive design** that works on mobile devices
 
@@ -177,9 +180,9 @@ Working on this project taught me a lot about how full-stack applications work t
 
 If I had more time, I would add:
 - User authentication so different users can have their own merchants
-- Sorting options for the table columns
 - Pagination for when there are many merchants
-- Export to CSV functionality
+- Data visualization with charts showing merchants by country
+- Batch import from CSV files
 
 ## Author
 
