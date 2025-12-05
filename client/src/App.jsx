@@ -3,6 +3,25 @@ import './App.css'
 
 const API_URL = 'https://full-stack-pern-app-production.up.railway.app'
 
+// MerchantRow component - receives data via props
+function MerchantRow({ merchant, onEdit, onDelete }) {
+  return (
+    <tr>
+      <td>{merchant.id}</td>
+      <td>{merchant.merchant_name}</td>
+      <td>{merchant.country}</td>
+      <td>
+        <button className="btn-edit" onClick={() => onEdit(merchant)}>
+          Edit
+        </button>
+        <button className="btn-delete" onClick={() => onDelete(merchant.id)}>
+          Delete
+        </button>
+      </td>
+    </tr>
+  )
+}
+
 function App() {
   const [merchants, setMerchants] = useState([])
   const [loading, setLoading] = useState(false)
@@ -192,25 +211,12 @@ function App() {
                 </tr>
               ) : (
                 merchants.map((merchant) => (
-                  <tr key={merchant.id}>
-                    <td>{merchant.id}</td>
-                    <td>{merchant.merchant_name}</td>
-                    <td>{merchant.country}</td>
-                    <td>
-                      <button
-                        className="btn-edit"
-                        onClick={() => handleEdit(merchant)}
-                      >
-                        Edit
-                      </button>
-                      <button
-                        className="btn-delete"
-                        onClick={() => handleDelete(merchant.id)}
-                      >
-                        Delete
-                      </button>
-                    </td>
-                  </tr>
+                  <MerchantRow
+                    key={merchant.id}
+                    merchant={merchant}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                  />
                 ))
               )}
             </tbody>
