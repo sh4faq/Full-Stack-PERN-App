@@ -3,6 +3,16 @@ import './App.css'
 
 const API_URL = 'https://full-stack-pern-app-production.up.railway.app'
 
+// Stats card component - shows summary statistics
+function StatsCard({ title, value, color }) {
+  return (
+    <div className="stat-card" style={{ borderLeftColor: color }}>
+      <div className="stat-value">{value}</div>
+      <div className="stat-title">{title}</div>
+    </div>
+  )
+}
+
 // Loading spinner component
 function LoadingSpinner() {
   return (
@@ -48,6 +58,9 @@ function App() {
     merchant.merchant_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     merchant.country.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  // Calculate statistics
+  const uniqueCountries = [...new Set(merchants.map(m => m.country))].length
 
   // Fetch all merchants
   const fetchMerchants = async () => {
@@ -160,6 +173,13 @@ function App() {
   return (
     <div className="App">
       <h1>Merchant Management System</h1>
+
+      {/* Statistics Dashboard */}
+      <div className="stats-container">
+        <StatsCard title="Total Merchants" value={merchants.length} color="#4CAF50" />
+        <StatsCard title="Countries" value={uniqueCountries} color="#2196F3" />
+        <StatsCard title="Showing" value={filteredMerchants.length} color="#FF9800" />
+      </div>
 
       {error && <div className="error">{error}</div>}
 
