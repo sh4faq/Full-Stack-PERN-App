@@ -31,6 +31,13 @@ function App() {
     country: ''
   })
   const [editingId, setEditingId] = useState(null)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  // Filter merchants based on search term
+  const filteredMerchants = merchants.filter(merchant =>
+    merchant.merchant_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    merchant.country.toLowerCase().includes(searchTerm.toLowerCase())
+  )
 
   // Fetch all merchants
   const fetchMerchants = async () => {
@@ -189,7 +196,26 @@ function App() {
 
       {/* Merchants List */}
       <div className="merchants-container">
-        <h2>All Merchants</h2>
+        <div className="merchants-header">
+          <h2>All Merchants</h2>
+          <div className="search-box">
+            <input
+              type="text"
+              placeholder="Search by name or country..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="search-input"
+            />
+            {searchTerm && (
+              <button
+                className="clear-search"
+                onClick={() => setSearchTerm('')}
+              >
+                Clear
+              </button>
+            )}
+          </div>
+        </div>
         {loading ? (
           <p>Loading...</p>
         ) : (
@@ -203,14 +229,14 @@ function App() {
               </tr>
             </thead>
             <tbody>
-              {merchants.length === 0 ? (
+              {filteredMerchants.length === 0 ? (
                 <tr>
                   <td colSpan="4" style={{ textAlign: 'center' }}>
-                    No merchants found. Add one above!
+                    {searchTerm ? 'No merchants match your search.' : 'No merchants found. Add one above!'}
                   </td>
                 </tr>
               ) : (
-                merchants.map((merchant) => (
+                filteredMerchants.map((merchant) => (
                   <MerchantRow
                     key={merchant.id}
                     merchant={merchant}

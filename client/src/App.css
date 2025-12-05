@@ -111,6 +111,49 @@ button {
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+.merchants-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.merchants-header h2 {
+  margin-bottom: 0;
+}
+
+.search-box {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.search-input {
+  padding: 0.5rem 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  min-width: 250px;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+.clear-search {
+  padding: 0.5rem 1rem;
+  background-color: #757575;
+  color: white;
+  font-size: 0.85rem;
+}
+
+.clear-search:hover {
+  background-color: #616161;
+}
+
 .merchants-table {
   width: 100%;
   border-collapse: collapse;
