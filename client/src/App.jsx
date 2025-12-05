@@ -197,7 +197,10 @@ function App() {
 
   return (
     <div className="App">
-      <h1>Merchant Management System</h1>
+      <header className="app-header">
+        <h1>Merchant Management System</h1>
+        <p className="subtitle">Track and manage your merchant partners</p>
+      </header>
 
       {/* Statistics Dashboard */}
       <div className="stats-container">
@@ -305,6 +308,10 @@ function App() {
           </table>
         )}
       </div>
+
+      <footer className="app-footer">
+        <p>Built with React, Express, and PostgreSQL</p>
+      </footer>
     </div>
   )
 }
