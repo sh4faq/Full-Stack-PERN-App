@@ -147,6 +147,15 @@ function App() {
     fetchMerchants()
   }, [])
 
+  // Apply dark mode to body element
+  useEffect(() => {
+    if (darkMode) {
+      document.body.classList.add('dark-mode')
+    } else {
+      document.body.classList.remove('dark-mode')
+    }
+  }, [darkMode])
+
   // Handle form input changes
   const handleInputChange = (e) => {
     setFormData({
