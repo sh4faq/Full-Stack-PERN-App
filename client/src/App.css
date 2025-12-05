@@ -37,6 +37,23 @@ h1 {
   margin-top: 0;
 }
 
+.theme-toggle {
+  margin-top: 1rem;
+  padding: 0.5rem 1.5rem;
+  background-color: rgba(255,255,255,0.2);
+  color: white;
+  border: 2px solid rgba(255,255,255,0.3);
+  border-radius: 25px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.theme-toggle:hover {
+  background-color: rgba(255,255,255,0.3);
+  transform: scale(1.05);
+}
+
 h2 {
   color: #444;
   margin-bottom: 1rem;
@@ -373,4 +390,79 @@ button {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
   }
+}
+
+/* Dark Mode Styles */
+.App.dark-mode {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+}
+
+.dark-mode .stat-card {
+  background-color: #1e293b;
+  color: #e2e8f0;
+}
+
+.dark-mode .stat-value {
+  color: #f1f5f9;
+}
+
+.dark-mode .stat-title {
+  color: #94a3b8;
+}
+
+.dark-mode .form-container {
+  background-color: rgba(30, 41, 59, 0.95);
+}
+
+.dark-mode .form-container h2 {
+  color: #e2e8f0;
+}
+
+.dark-mode .form-group label {
+  color: #94a3b8;
+}
+
+.dark-mode .form-group input {
+  background-color: #334155;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.dark-mode .form-group input:focus {
+  border-color: #667eea;
+}
+
+.dark-mode .merchants-container {
+  background-color: rgba(30, 41, 59, 0.95);
+}
+
+.dark-mode .merchants-container h2 {
+  color: #e2e8f0;
+}
+
+.dark-mode .search-input {
+  background-color: #334155;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.dark-mode .merchants-table td {
+  color: #e2e8f0;
+  border-bottom-color: #334155;
+}
+
+.dark-mode .merchants-table tr:hover {
+  background-color: #334155;
+}
+
+.dark-mode .error {
+  background-color: #450a0a;
+  border-color: #7f1d1d;
+  color: #fca5a5;
+}
+
+.dark-mode .success {
+  background-color: #052e16;
+  border-color: #166534;
+  color: #86efac;
 }

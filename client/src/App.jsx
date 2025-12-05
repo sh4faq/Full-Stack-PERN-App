@@ -54,6 +54,12 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' })
+  const [darkMode, setDarkMode] = useState(false)
+
+  // Toggle dark mode
+  const toggleDarkMode = () => {
+    setDarkMode(prev => !prev)
+  }
 
   // Filter merchants based on search term
   const filteredMerchants = merchants.filter(merchant =>
@@ -253,10 +259,13 @@ function App() {
   }
 
   return (
-    <div className="App">
+    <div className={`App ${darkMode ? 'dark-mode' : ''}`}>
       <header className="app-header">
         <h1>Merchant Management System</h1>
         <p className="subtitle">Track and manage your merchant partners</p>
+        <button className="theme-toggle" onClick={toggleDarkMode}>
+          {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+        </button>
       </header>
 
       {/* Statistics Dashboard */}
