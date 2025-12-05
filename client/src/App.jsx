@@ -3,6 +3,16 @@ import './App.css'
 
 const API_URL = 'https://full-stack-pern-app-production.up.railway.app'
 
+// Loading spinner component
+function LoadingSpinner() {
+  return (
+    <div className="spinner-container">
+      <div className="spinner"></div>
+      <p>Loading merchants...</p>
+    </div>
+  )
+}
+
 // MerchantRow component - receives data via props
 function MerchantRow({ merchant, onEdit, onDelete }) {
   return (
@@ -217,7 +227,7 @@ function App() {
           </div>
         </div>
         {loading ? (
-          <p>Loading...</p>
+          <LoadingSpinner />
         ) : (
           <table className="merchants-table">
             <thead>
