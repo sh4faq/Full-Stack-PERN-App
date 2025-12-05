@@ -53,12 +53,43 @@ function App() {
   const [editingId, setEditingId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' })
 
   // Filter merchants based on search term
   const filteredMerchants = merchants.filter(merchant =>
     merchant.merchant_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     merchant.country.toLowerCase().includes(searchTerm.toLowerCase())
   )
+
+  // Sort the filtered merchants
+  const sortedMerchants = [...filteredMerchants].sort((a, b) => {
+    let aVal = a[sortConfig.key]
+    let bVal = b[sortConfig.key]
+
+    // Handle string comparison
+    if (typeof aVal === 'string') {
+      aVal = aVal.toLowerCase()
+      bVal = bVal.toLowerCase()
+    }
+
+    if (aVal < bVal) return sortConfig.direction === 'asc' ? -1 : 1
+    if (aVal > bVal) return sortConfig.direction === 'asc' ? 1 : -1
+    return 0
+  })
+
+  // Handle column sort
+  const handleSort = (key) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }))
+  }
+
+  // Get sort icon for column header
+  const getSortIcon = (key) => {
+    if (sortConfig.key !== key) return ''
+    return sortConfig.direction === 'asc' ? ' ↑' : ' ↓'
+  }
 
   // Calculate statistics
   const uniqueCountries = [...new Set(merchants.map(m => m.country))].length
@@ -281,21 +312,27 @@ function App() {
           <table className="merchants-table">
             <thead>
               <tr>
-                <th>ID</th>
-                <th>Merchant Name</th>
-                <th>Country</th>
+                <th onClick={() => handleSort('id')}>
+                  ID{getSortIcon('id')}
+                </th>
+                <th onClick={() => handleSort('merchant_name')}>
+                  Merchant Name{getSortIcon('merchant_name')}
+                </th>
+                <th onClick={() => handleSort('country')}>
+                  Country{getSortIcon('country')}
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredMerchants.length === 0 ? (
+              {sortedMerchants.length === 0 ? (
                 <tr>
                   <td colSpan="4" style={{ textAlign: 'center' }}>
                     {searchTerm ? 'No merchants match your search.' : 'No merchants found. Add one above!'}
                   </td>
                 </tr>
               ) : (
-                filteredMerchants.map((merchant) => (
+                sortedMerchants.map((merchant) => (
                   <MerchantRow
                     key={merchant.id}
                     merchant={merchant}
