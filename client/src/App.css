@@ -35,6 +35,15 @@ h2 {
   margin-bottom: 1rem;
 }
 
+.success {
+  background-color: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  color: #2e7d32;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
 .spinner-container {
   display: flex;
   flex-direction: column;

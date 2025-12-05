@@ -52,6 +52,7 @@ function App() {
   })
   const [editingId, setEditingId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [successMsg, setSuccessMsg] = useState('')
 
   // Filter merchants based on search term
   const filteredMerchants = merchants.filter(merchant =>
@@ -91,11 +92,26 @@ function App() {
     })
   }
 
+  // Show success message then clear it
+  const showSuccess = (message) => {
+    setSuccessMsg(message)
+    setError(null)
+    setTimeout(() => setSuccessMsg(''), 3000)
+  }
+
   // Create new merchant
   const handleCreate = async (e) => {
     e.preventDefault()
-    if (!formData.merchant_name || !formData.country) {
+    setError(null)
+
+    // Validate inputs
+    if (!formData.merchant_name.trim() || !formData.country.trim()) {
       setError('Please fill in all fields')
+      return
+    }
+
+    if (formData.merchant_name.trim().length < 2) {
+      setError('Merchant name must be at least 2 characters')
       return
     }
 
@@ -103,13 +119,16 @@ function App() {
       const response = await fetch(`${API_URL}/merchants`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          merchant_name: formData.merchant_name.trim(),
+          country: formData.country.trim()
+        })
       })
       if (!response.ok) throw new Error('Failed to create merchant')
 
       setFormData({ merchant_name: '', country: '' })
       fetchMerchants()
-      setError(null)
+      showSuccess('Merchant created successfully!')
     } catch (err) {
       setError(err.message)
     }
@@ -118,7 +137,9 @@ function App() {
   // Update existing merchant
   const handleUpdate = async (e) => {
     e.preventDefault()
-    if (!formData.merchant_name || !formData.country) {
+    setError(null)
+
+    if (!formData.merchant_name.trim() || !formData.country.trim()) {
       setError('Please fill in all fields')
       return
     }
@@ -127,14 +148,17 @@ function App() {
       const response = await fetch(`${API_URL}/merchants/${editingId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify({
+          merchant_name: formData.merchant_name.trim(),
+          country: formData.country.trim()
+        })
       })
       if (!response.ok) throw new Error('Failed to update merchant')
 
       setFormData({ merchant_name: '', country: '' })
       setEditingId(null)
       fetchMerchants()
-      setError(null)
+      showSuccess('Merchant updated successfully!')
     } catch (err) {
       setError(err.message)
     }
@@ -150,6 +174,7 @@ function App() {
       })
       if (!response.ok) throw new Error('Failed to delete merchant')
       fetchMerchants()
+      showSuccess('Merchant deleted successfully!')
     } catch (err) {
       setError(err.message)
     }
@@ -182,6 +207,7 @@ function App() {
       </div>
 
       {error && <div className="error">{error}</div>}
+      {successMsg && <div className="success">{successMsg}</div>}
 
       {/* Create/Update Form */}
       <div className="form-container">
