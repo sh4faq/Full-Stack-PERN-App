@@ -91,6 +91,32 @@ function App() {
     return sortConfig.direction === 'asc' ? ' ↑' : ' ↓'
   }
 
+  // Export to CSV
+  const exportToCSV = () => {
+    if (merchants.length === 0) {
+      setError('No data to export')
+      return
+    }
+
+    const headers = ['ID', 'Merchant Name', 'Country']
+    const csvData = sortedMerchants.map(m => [m.id, m.merchant_name, m.country])
+
+    const csvContent = [
+      headers.join(','),
+      ...csvData.map(row => row.join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `merchants_${new Date().toISOString().split('T')[0]}.csv`
+    link.click()
+    window.URL.revokeObjectURL(url)
+
+    showSuccess('Data exported to CSV!')
+  }
+
   // Calculate statistics
   const uniqueCountries = [...new Set(merchants.map(m => m.country))].length
 
@@ -288,22 +314,27 @@ function App() {
       <div className="merchants-container">
         <div className="merchants-header">
           <h2>All Merchants</h2>
-          <div className="search-box">
-            <input
-              type="text"
-              placeholder="Search by name or country..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="search-input"
-            />
-            {searchTerm && (
-              <button
-                className="clear-search"
-                onClick={() => setSearchTerm('')}
-              >
-                Clear
-              </button>
-            )}
+          <div className="header-controls">
+            <div className="search-box">
+              <input
+                type="text"
+                placeholder="Search by name or country..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="search-input"
+              />
+              {searchTerm && (
+                <button
+                  className="clear-search"
+                  onClick={() => setSearchTerm('')}
+                >
+                  Clear
+                </button>
+              )}
+            </div>
+            <button className="btn-export" onClick={exportToCSV}>
+              Export CSV
+            </button>
           </div>
         </div>
         {loading ? (
