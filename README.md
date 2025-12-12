@@ -14,20 +14,24 @@ This is a merchant management system where you can add, view, edit, and delete m
 
 ### Features
 
-- **Create** new merchants with name, country, and category
+- **Create** new merchants with name, country, category, and status
 - **Read** all merchants in a searchable, sortable table
 - **Update** existing merchant information
-- **Delete** merchants with confirmation modal
+- **Delete** merchants with undo option (toast notification)
 - **Search** merchants by name or country
 - **Sort** table columns (ID, Name, Country) ascending/descending
 - **Export to CSV** download your merchant data with all fields
+- **Import from CSV** bulk upload merchants from a CSV file
 - **Dark Mode** toggle with preference saved to localStorage
 - **Favorites** star merchants and filter to show only favorites
 - **Categories** assign categories (Retail, Food, Electronics, etc.) with color-coded badges
+- **Status** track merchant status (Active, Inactive, Pending) with badges
 - **Country Flags** automatic flag emojis next to country names
 - **Bulk Actions** select multiple merchants and delete at once
 - **Duplicate Detection** warns when adding a merchant that already exists
-- **Statistics dashboard** showing totals, countries, favorites count
+- **Activity Log** track recent actions (create, update, delete, export)
+- **Keyboard Shortcuts** Ctrl+N (new), Ctrl+E (export), Ctrl+D (dark mode), Escape (cancel)
+- **Statistics dashboard** showing totals, active count, countries, favorites
 - **Responsive design** that works on mobile devices
 
 ## Technologies Used
