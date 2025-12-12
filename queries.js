@@ -28,9 +28,11 @@ const getMerchantById = (request, response) => {
 
   pool.query('SELECT * FROM merchants WHERE id = $1', [id], (error, results) => {
     if (error) {
-      throw error
+      console.error('Error in getMerchantById:', error)
+      response.status(500).json({ error: error.message })
+      return
     }
-    response.status(200).json(results.rows)
+    response.status(200).json(results.rows[0] || null)
   })
 }
 
@@ -39,9 +41,11 @@ const createMerchant = (request, response) => {
 
   pool.query('INSERT INTO merchants (merchant_name, country) VALUES ($1, $2) RETURNING *', [merchant_name, country], (error, results) => {
     if (error) {
-      throw error
+      console.error('Error in createMerchant:', error)
+      response.status(500).json({ error: error.message })
+      return
     }
-    response.status(201).send(`Merchant added with ID: ${results.rows[0].id}`)
+    response.status(201).json(results.rows[0])
   })
 }
 
@@ -50,13 +54,15 @@ const updateMerchant = (request, response) => {
   const { merchant_name, country } = request.body
 
   pool.query(
-    'UPDATE merchants SET merchant_name = $1, country = $2 WHERE id = $3',
+    'UPDATE merchants SET merchant_name = $1, country = $2 WHERE id = $3 RETURNING *',
     [merchant_name, country, id],
     (error, results) => {
       if (error) {
-        throw error
+        console.error('Error in updateMerchant:', error)
+        response.status(500).json({ error: error.message })
+        return
       }
-      response.status(200).send(`Merchant modified with ID: ${id}`)
+      response.status(200).json(results.rows[0])
     }
   )
 }
@@ -66,9 +72,11 @@ const deleteMerchant = (request, response) => {
 
   pool.query('DELETE FROM merchants WHERE id = $1', [id], (error, results) => {
     if (error) {
-      throw error
+      console.error('Error in deleteMerchant:', error)
+      response.status(500).json({ error: error.message })
+      return
     }
-    response.status(200).send(`Merchant deleted with ID: ${id}`)
+    response.status(200).json({ id, message: 'Merchant deleted' })
   })
 }
 
