@@ -466,3 +466,314 @@ body.dark-mode {
   border-color: #166534;
   color: #86efac;
 }
+
+/* Favorites button */
+.favorite-btn {
+  background: none;
+  border: none;
+  font-size: 1.3rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  color: #ccc;
+  transition: color 0.2s, transform 0.2s;
+}
+
+.favorite-btn:hover {
+  transform: scale(1.2);
+}
+
+.favorite-btn.favorited {
+  color: #FFD700;
+}
+
+/* Country cell with flag */
+.country-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.flag {
+  font-size: 1.2rem;
+}
+
+/* Category badges */
+.category-badge {
+  padding: 0.25rem 0.75rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.category-retail {
+  background-color: #e3f2fd;
+  color: #1565c0;
+}
+
+.category-foodbeverage {
+  background-color: #fff3e0;
+  color: #e65100;
+}
+
+.category-electronics {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.category-fashion {
+  background-color: #fce4ec;
+  color: #c2185b;
+}
+
+.category-services {
+  background-color: #f3e5f5;
+  color: #7b1fa2;
+}
+
+.category-healthcare {
+  background-color: #e0f7fa;
+  color: #00838f;
+}
+
+.category-other {
+  background-color: #eceff1;
+  color: #546e7a;
+}
+
+/* Category select dropdown */
+.category-select {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  background-color: white;
+  cursor: pointer;
+}
+
+.category-select:focus {
+  outline: none;
+  border-color: #4CAF50;
+}
+
+/* Filter controls */
+.filter-controls {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.filter-btn {
+  padding: 0.5rem 1rem;
+  background-color: #f5f5f5;
+  color: #666;
+  border: 1px solid #ddd;
+  font-size: 0.85rem;
+}
+
+.filter-btn.active {
+  background-color: #FFD700;
+  color: #333;
+  border-color: #FFD700;
+}
+
+.filter-btn:hover {
+  background-color: #e0e0e0;
+}
+
+.category-filter {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  background-color: white;
+}
+
+/* Bulk actions bar */
+.bulk-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  background-color: #fff3e0;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+}
+
+.bulk-actions span {
+  font-weight: 600;
+  color: #e65100;
+}
+
+.btn-danger {
+  background-color: #f44336;
+  color: white;
+}
+
+.btn-danger:hover {
+  background-color: #d32f2f;
+}
+
+/* Row checkbox */
+.row-checkbox {
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+}
+
+/* Selected row */
+.selected-row {
+  background-color: #e3f2fd !important;
+}
+
+/* Duplicate warning */
+.duplicate-warning {
+  display: block;
+  color: #e65100;
+  font-size: 0.85rem;
+  margin-top: 0.5rem;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content h3 {
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.modal-content p {
+  margin-bottom: 1.5rem;
+  color: #666;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: flex-end;
+}
+
+/* Sortable columns */
+.sortable {
+  cursor: pointer;
+}
+
+.sortable:hover {
+  opacity: 0.85;
+}
+
+/* Dark mode additions */
+.dark-mode .favorite-btn {
+  color: #64748b;
+}
+
+.dark-mode .favorite-btn.favorited {
+  color: #FFD700;
+}
+
+.dark-mode .category-select {
+  background-color: #334155;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.dark-mode .filter-btn {
+  background-color: #334155;
+  color: #e2e8f0;
+  border-color: #475569;
+}
+
+.dark-mode .filter-btn.active {
+  background-color: #FFD700;
+  color: #333;
+}
+
+.dark-mode .category-filter {
+  background-color: #334155;
+  border-color: #475569;
+  color: #e2e8f0;
+}
+
+.dark-mode .bulk-actions {
+  background-color: #3d2814;
+}
+
+.dark-mode .bulk-actions span {
+  color: #fbbf24;
+}
+
+.dark-mode .selected-row {
+  background-color: #1e3a5f !important;
+}
+
+.dark-mode .modal-content {
+  background-color: #1e293b;
+}
+
+.dark-mode .modal-content h3 {
+  color: #e2e8f0;
+}
+
+.dark-mode .modal-content p {
+  color: #94a3b8;
+}
+
+.dark-mode .duplicate-warning {
+  color: #fbbf24;
+}
+
+.dark-mode .category-retail {
+  background-color: #1e3a5f;
+  color: #93c5fd;
+}
+
+.dark-mode .category-foodbeverage {
+  background-color: #3d2814;
+  color: #fdba74;
+}
+
+.dark-mode .category-electronics {
+  background-color: #14532d;
+  color: #86efac;
+}
+
+.dark-mode .category-fashion {
+  background-color: #4a1d36;
+  color: #f9a8d4;
+}
+
+.dark-mode .category-services {
+  background-color: #3b1d4a;
+  color: #d8b4fe;
+}
+
+.dark-mode .category-healthcare {
+  background-color: #134e4a;
+  color: #5eead4;
+}
+
+.dark-mode .category-other {
+  background-color: #334155;
+  color: #94a3b8;
+}
