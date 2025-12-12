@@ -51,7 +51,6 @@ const countryFlags = {
   'norway': '🇳🇴',
   'denmark': '🇩🇰',
   'finland': '🇫🇮',
-  'israel': '🇮🇱',
   'chile': '🇨🇱',
   'colombia': '🇨🇴',
   'peru': '🇵🇪',
