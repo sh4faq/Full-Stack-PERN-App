@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import './App.css'
 
 const API_URL = 'https://full-stack-pern-app-production.up.railway.app'
@@ -64,14 +64,14 @@ const countryFlags = {
   'ghana': '🇬🇭'
 }
 
-// Get flag for country
 const getFlag = (country) => {
   const key = country.toLowerCase().trim()
   return countryFlags[key] || '🌍'
 }
 
-// Category options for merchants
+// Options
 const CATEGORIES = ['Retail', 'Food & Beverage', 'Electronics', 'Fashion', 'Services', 'Healthcare', 'Other']
+const STATUSES = ['Active', 'Inactive', 'Pending']
 
 // Stats card component
 function StatsCard({ title, value, color }) {
@@ -93,8 +93,20 @@ function LoadingSpinner() {
   )
 }
 
-// Merchant row component with favorites and selection
-function MerchantRow({ merchant, onEdit, onDelete, onToggleFavorite, isFavorite, isSelected, onToggleSelect, category }) {
+// Toast notification for undo
+function Toast({ message, onUndo, onClose, show }) {
+  if (!show) return null
+  return (
+    <div className="toast">
+      <span>{message}</span>
+      {onUndo && <button className="toast-undo" onClick={onUndo}>Undo</button>}
+      <button className="toast-close" onClick={onClose}>×</button>
+    </div>
+  )
+}
+
+// Merchant row component
+function MerchantRow({ merchant, onEdit, onDelete, onToggleFavorite, isFavorite, isSelected, onToggleSelect, category, status }) {
   return (
     <tr className={isSelected ? 'selected-row' : ''}>
       <td>
@@ -128,6 +140,11 @@ function MerchantRow({ merchant, onEdit, onDelete, onToggleFavorite, isFavorite,
         </span>
       </td>
       <td>
+        <span className={`status-badge status-${status.toLowerCase()}`}>
+          {status}
+        </span>
+      </td>
+      <td>
         <button className="btn-edit" onClick={() => onEdit(merchant)}>Edit</button>
         <button className="btn-delete" onClick={() => onDelete(merchant.id)}>Delete</button>
       </td>
@@ -135,10 +152,9 @@ function MerchantRow({ merchant, onEdit, onDelete, onToggleFavorite, isFavorite,
   )
 }
 
-// Confirmation modal component
+// Confirmation modal
 function ConfirmModal({ show, title, message, onConfirm, onCancel }) {
   if (!show) return null
-
   return (
     <div className="modal-overlay">
       <div className="modal-content">
@@ -153,6 +169,30 @@ function ConfirmModal({ show, title, message, onConfirm, onCancel }) {
   )
 }
 
+// Activity log component
+function ActivityLog({ activities, onClear }) {
+  if (activities.length === 0) return null
+  return (
+    <div className="activity-log">
+      <div className="activity-header">
+        <h3>Recent Activity</h3>
+        <button className="btn-small" onClick={onClear}>Clear</button>
+      </div>
+      <ul>
+        {activities.slice(0, 5).map((activity, idx) => (
+          <li key={idx}>
+            <span className={`activity-icon ${activity.type}`}>
+              {activity.type === 'create' ? '+' : activity.type === 'update' ? '✎' : '−'}
+            </span>
+            <span className="activity-text">{activity.text}</span>
+            <span className="activity-time">{activity.time}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  )
+}
+
 function App() {
   const [merchants, setMerchants] = useState([])
   const [loading, setLoading] = useState(false)
@@ -160,12 +200,17 @@ function App() {
   const [formData, setFormData] = useState({
     merchant_name: '',
     country: '',
-    category: 'Retail'
+    category: 'Retail',
+    status: 'Active'
   })
   const [editingId, setEditingId] = useState(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [successMsg, setSuccessMsg] = useState('')
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' })
+
+  // Refs for keyboard shortcuts
+  const nameInputRef = useRef(null)
+  const fileInputRef = useRef(null)
 
   // Load dark mode from localStorage
   const [darkMode, setDarkMode] = useState(() => {
@@ -179,15 +224,28 @@ function App() {
     return saved ? JSON.parse(saved) : []
   })
 
-  // Categories stored in localStorage (since we cant modify the database)
+  // Categories stored in localStorage
   const [merchantCategories, setMerchantCategories] = useState(() => {
     const saved = localStorage.getItem('merchantCategories')
     return saved ? JSON.parse(saved) : {}
   })
 
+  // Statuses stored in localStorage
+  const [merchantStatuses, setMerchantStatuses] = useState(() => {
+    const saved = localStorage.getItem('merchantStatuses')
+    return saved ? JSON.parse(saved) : {}
+  })
+
+  // Activity log
+  const [activities, setActivities] = useState(() => {
+    const saved = localStorage.getItem('merchantActivities')
+    return saved ? JSON.parse(saved) : []
+  })
+
   // Filter states
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false)
   const [filterCategory, setFilterCategory] = useState('All')
+  const [filterStatus, setFilterStatus] = useState('All')
 
   // Bulk selection
   const [selectedIds, setSelectedIds] = useState([])
@@ -198,7 +256,11 @@ function App() {
   // Duplicate warning
   const [duplicateWarning, setDuplicateWarning] = useState('')
 
-  // Save dark mode to localStorage
+  // Undo delete state
+  const [deletedMerchant, setDeletedMerchant] = useState(null)
+  const [showToast, setShowToast] = useState(false)
+
+  // Save to localStorage effects
   useEffect(() => {
     localStorage.setItem('darkMode', darkMode)
     if (darkMode) {
@@ -208,22 +270,66 @@ function App() {
     }
   }, [darkMode])
 
-  // Save favorites to localStorage
   useEffect(() => {
     localStorage.setItem('merchantFavorites', JSON.stringify(favorites))
   }, [favorites])
 
-  // Save categories to localStorage
   useEffect(() => {
     localStorage.setItem('merchantCategories', JSON.stringify(merchantCategories))
   }, [merchantCategories])
 
-  // Toggle dark mode
+  useEffect(() => {
+    localStorage.setItem('merchantStatuses', JSON.stringify(merchantStatuses))
+  }, [merchantStatuses])
+
+  useEffect(() => {
+    localStorage.setItem('merchantActivities', JSON.stringify(activities))
+  }, [activities])
+
+  // Keyboard shortcuts
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      // Ctrl+N or Cmd+N - focus on new merchant form
+      if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+        e.preventDefault()
+        handleCancel() // Clear form first
+        nameInputRef.current?.focus()
+      }
+      // Escape - cancel editing
+      if (e.key === 'Escape' && editingId) {
+        handleCancel()
+      }
+      // Ctrl+E - export CSV
+      if ((e.ctrlKey || e.metaKey) && e.key === 'e') {
+        e.preventDefault()
+        exportToCSV()
+      }
+      // Ctrl+D - toggle dark mode
+      if ((e.ctrlKey || e.metaKey) && e.key === 'd') {
+        e.preventDefault()
+        setDarkMode(prev => !prev)
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [editingId])
+
+  // Add activity to log
+  const addActivity = (type, text) => {
+    const now = new Date()
+    const time = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    setActivities(prev => [{ type, text, time }, ...prev.slice(0, 19)])
+  }
+
+  const clearActivities = () => {
+    setActivities([])
+  }
+
   const toggleDarkMode = () => {
     setDarkMode(prev => !prev)
   }
 
-  // Toggle favorite
   const toggleFavorite = (id) => {
     setFavorites(prev => {
       if (prev.includes(id)) {
@@ -234,7 +340,6 @@ function App() {
     })
   }
 
-  // Toggle selection
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
       if (prev.includes(id)) {
@@ -245,7 +350,6 @@ function App() {
     })
   }
 
-  // Select all visible merchants
   const selectAll = () => {
     if (selectedIds.length === sortedMerchants.length) {
       setSelectedIds([])
@@ -254,7 +358,6 @@ function App() {
     }
   }
 
-  // Bulk delete selected
   const handleBulkDelete = () => {
     if (selectedIds.length === 0) {
       setError('No merchants selected')
@@ -263,13 +366,13 @@ function App() {
     setShowModal(true)
   }
 
-  // Execute bulk delete
   const executeBulkDelete = async () => {
     setShowModal(false)
     try {
       for (const id of selectedIds) {
         await fetch(`${API_URL}/merchants/${id}`, { method: 'DELETE' })
       }
+      addActivity('delete', `Deleted ${selectedIds.length} merchants`)
       setSelectedIds([])
       fetchMerchants()
       showSuccess(`Deleted ${selectedIds.length} merchants!`)
@@ -278,7 +381,6 @@ function App() {
     }
   }
 
-  // Check for duplicates as user types
   const checkDuplicate = (name) => {
     if (name.length < 2) {
       setDuplicateWarning('')
@@ -301,12 +403,13 @@ function App() {
     const matchesFavorite = !showFavoritesOnly || favorites.includes(merchant.id)
     const category = merchantCategories[merchant.id] || 'Other'
     const matchesCategory = filterCategory === 'All' || category === filterCategory
-    return matchesSearch && matchesFavorite && matchesCategory
+    const status = merchantStatuses[merchant.id] || 'Active'
+    const matchesStatus = filterStatus === 'All' || status === filterStatus
+    return matchesSearch && matchesFavorite && matchesCategory && matchesStatus
   })
 
   // Sort merchants
   const sortedMerchants = [...filteredMerchants].sort((a, b) => {
-    // Favorites always first if showing all
     if (!showFavoritesOnly) {
       const aFav = favorites.includes(a.id)
       const bFav = favorites.includes(b.id)
@@ -339,19 +442,20 @@ function App() {
     return sortConfig.direction === 'asc' ? ' ↑' : ' ↓'
   }
 
-  // Export to CSV with categories
+  // Export to CSV
   const exportToCSV = () => {
     if (merchants.length === 0) {
       setError('No data to export')
       return
     }
 
-    const headers = ['ID', 'Merchant Name', 'Country', 'Category', 'Favorite']
+    const headers = ['ID', 'Merchant Name', 'Country', 'Category', 'Status', 'Favorite']
     const csvData = sortedMerchants.map(m => [
       m.id,
-      m.merchant_name,
-      m.country,
+      `"${m.merchant_name}"`,
+      `"${m.country}"`,
       merchantCategories[m.id] || 'Other',
+      merchantStatuses[m.id] || 'Active',
       favorites.includes(m.id) ? 'Yes' : 'No'
     ])
 
@@ -368,12 +472,71 @@ function App() {
     link.click()
     window.URL.revokeObjectURL(url)
 
+    addActivity('export', 'Exported data to CSV')
     showSuccess('Data exported to CSV!')
+  }
+
+  // Import from CSV
+  const handleImportCSV = (e) => {
+    const file = e.target.files[0]
+    if (!file) return
+
+    const reader = new FileReader()
+    reader.onload = async (event) => {
+      try {
+        const text = event.target.result
+        const lines = text.split('\n').filter(line => line.trim())
+
+        if (lines.length < 2) {
+          setError('CSV file is empty or has no data rows')
+          return
+        }
+
+        // Skip header row
+        const dataRows = lines.slice(1)
+        let imported = 0
+
+        for (const row of dataRows) {
+          // Simple CSV parsing (handles quoted values)
+          const cols = row.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g)
+          if (!cols || cols.length < 2) continue
+
+          const name = cols[1]?.replace(/"/g, '').trim()
+          const country = cols[2]?.replace(/"/g, '').trim()
+          const category = cols[3]?.replace(/"/g, '').trim() || 'Other'
+          const status = cols[4]?.replace(/"/g, '').trim() || 'Active'
+
+          if (name && country) {
+            const response = await fetch(`${API_URL}/merchants`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ merchant_name: name, country: country })
+            })
+
+            if (response.ok) {
+              const newMerchant = await response.json()
+              setMerchantCategories(prev => ({ ...prev, [newMerchant.id]: category }))
+              setMerchantStatuses(prev => ({ ...prev, [newMerchant.id]: status }))
+              imported++
+            }
+          }
+        }
+
+        fetchMerchants()
+        addActivity('create', `Imported ${imported} merchants from CSV`)
+        showSuccess(`Imported ${imported} merchants from CSV!`)
+      } catch (err) {
+        setError('Failed to import CSV: ' + err.message)
+      }
+    }
+    reader.readAsText(file)
+    e.target.value = '' // Reset file input
   }
 
   // Stats
   const uniqueCountries = [...new Set(merchants.map(m => m.country))].length
   const favoritesCount = favorites.filter(id => merchants.some(m => m.id === id)).length
+  const activeCount = merchants.filter(m => (merchantStatuses[m.id] || 'Active') === 'Active').length
 
   // Fetch merchants
   const fetchMerchants = async () => {
@@ -402,7 +565,6 @@ function App() {
       [name]: value
     })
 
-    // Check for duplicates when name changes
     if (name === 'merchant_name') {
       checkDuplicate(value)
     }
@@ -428,7 +590,6 @@ function App() {
       return
     }
 
-    // Warn but allow duplicates
     if (duplicateWarning) {
       if (!window.confirm('A merchant with this name exists. Add anyway?')) {
         return
@@ -448,13 +609,11 @@ function App() {
 
       const newMerchant = await response.json()
 
-      // Save category for new merchant
-      setMerchantCategories(prev => ({
-        ...prev,
-        [newMerchant.id]: formData.category
-      }))
+      setMerchantCategories(prev => ({ ...prev, [newMerchant.id]: formData.category }))
+      setMerchantStatuses(prev => ({ ...prev, [newMerchant.id]: formData.status }))
 
-      setFormData({ merchant_name: '', country: '', category: 'Retail' })
+      addActivity('create', `Added "${formData.merchant_name}"`)
+      setFormData({ merchant_name: '', country: '', category: 'Retail', status: 'Active' })
       setDuplicateWarning('')
       fetchMerchants()
       showSuccess('Merchant created successfully!')
@@ -483,13 +642,11 @@ function App() {
       })
       if (!response.ok) throw new Error('Failed to update merchant')
 
-      // Update category
-      setMerchantCategories(prev => ({
-        ...prev,
-        [editingId]: formData.category
-      }))
+      setMerchantCategories(prev => ({ ...prev, [editingId]: formData.category }))
+      setMerchantStatuses(prev => ({ ...prev, [editingId]: formData.status }))
 
-      setFormData({ merchant_name: '', country: '', category: 'Retail' })
+      addActivity('update', `Updated "${formData.merchant_name}"`)
+      setFormData({ merchant_name: '', country: '', category: 'Retail', status: 'Active' })
       setEditingId(null)
       setDuplicateWarning('')
       fetchMerchants()
@@ -499,8 +656,10 @@ function App() {
     }
   }
 
+  // Delete with undo capability
   const handleDelete = async (id) => {
-    if (!window.confirm('Are you sure you want to delete this merchant?')) return
+    const merchant = merchants.find(m => m.id === id)
+    if (!merchant) return
 
     try {
       const response = await fetch(`${API_URL}/merchants/${id}`, {
@@ -508,19 +667,72 @@ function App() {
       })
       if (!response.ok) throw new Error('Failed to delete merchant')
 
-      // Clean up favorites and categories
+      // Store deleted merchant for undo
+      setDeletedMerchant({
+        ...merchant,
+        category: merchantCategories[id] || 'Other',
+        status: merchantStatuses[id] || 'Active',
+        isFavorite: favorites.includes(id)
+      })
+
+      // Clean up
       setFavorites(prev => prev.filter(fid => fid !== id))
       setMerchantCategories(prev => {
         const updated = { ...prev }
         delete updated[id]
         return updated
       })
+      setMerchantStatuses(prev => {
+        const updated = { ...prev }
+        delete updated[id]
+        return updated
+      })
 
+      addActivity('delete', `Deleted "${merchant.merchant_name}"`)
       fetchMerchants()
-      showSuccess('Merchant deleted successfully!')
+      setShowToast(true)
+
+      // Auto-hide toast after 5 seconds
+      setTimeout(() => {
+        setShowToast(false)
+        setDeletedMerchant(null)
+      }, 5000)
     } catch (err) {
       setError(err.message)
     }
+  }
+
+  // Undo delete
+  const handleUndo = async () => {
+    if (!deletedMerchant) return
+
+    try {
+      const response = await fetch(`${API_URL}/merchants`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          merchant_name: deletedMerchant.merchant_name,
+          country: deletedMerchant.country
+        })
+      })
+
+      if (response.ok) {
+        const restored = await response.json()
+        setMerchantCategories(prev => ({ ...prev, [restored.id]: deletedMerchant.category }))
+        setMerchantStatuses(prev => ({ ...prev, [restored.id]: deletedMerchant.status }))
+        if (deletedMerchant.isFavorite) {
+          setFavorites(prev => [...prev, restored.id])
+        }
+        addActivity('create', `Restored "${deletedMerchant.merchant_name}"`)
+        fetchMerchants()
+        showSuccess('Merchant restored!')
+      }
+    } catch (err) {
+      setError('Failed to restore merchant')
+    }
+
+    setShowToast(false)
+    setDeletedMerchant(null)
   }
 
   const handleEdit = (merchant) => {
@@ -528,14 +740,16 @@ function App() {
     setFormData({
       merchant_name: merchant.merchant_name,
       country: merchant.country,
-      category: merchantCategories[merchant.id] || 'Other'
+      category: merchantCategories[merchant.id] || 'Other',
+      status: merchantStatuses[merchant.id] || 'Active'
     })
     setDuplicateWarning('')
+    nameInputRef.current?.focus()
   }
 
   const handleCancel = () => {
     setEditingId(null)
-    setFormData({ merchant_name: '', country: '', category: 'Retail' })
+    setFormData({ merchant_name: '', country: '', category: 'Retail', status: 'Active' })
     setDuplicateWarning('')
   }
 
@@ -544,15 +758,19 @@ function App() {
       <header className="app-header">
         <h1>Merchant Management System</h1>
         <p className="subtitle">Track and manage your merchant partners</p>
-        <button className="theme-toggle" onClick={toggleDarkMode}>
-          {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
-        </button>
+        <div className="header-actions">
+          <button className="theme-toggle" onClick={toggleDarkMode}>
+            {darkMode ? '☀️ Light Mode' : '🌙 Dark Mode'}
+          </button>
+          <span className="keyboard-hint">Ctrl+N: New | Ctrl+E: Export | Ctrl+D: Dark Mode</span>
+        </div>
       </header>
 
       {/* Statistics Dashboard */}
       <div className="stats-container">
         <StatsCard title="Total Merchants" value={merchants.length} color="#4CAF50" />
-        <StatsCard title="Countries" value={uniqueCountries} color="#2196F3" />
+        <StatsCard title="Active" value={activeCount} color="#2196F3" />
+        <StatsCard title="Countries" value={uniqueCountries} color="#9C27B0" />
         <StatsCard title="Favorites" value={favoritesCount} color="#FF5722" />
         <StatsCard title="Showing" value={filteredMerchants.length} color="#FF9800" />
       </div>
@@ -560,48 +778,70 @@ function App() {
       {error && <div className="error">{error}</div>}
       {successMsg && <div className="success">{successMsg}</div>}
 
+      {/* Activity Log */}
+      <ActivityLog activities={activities} onClear={clearActivities} />
+
       {/* Form */}
       <div className="form-container">
         <h2>{editingId ? 'Update Merchant' : 'Add New Merchant'}</h2>
         <form onSubmit={editingId ? handleUpdate : handleCreate}>
-          <div className="form-group">
-            <label htmlFor="merchant_name">Merchant Name:</label>
-            <input
-              type="text"
-              id="merchant_name"
-              name="merchant_name"
-              value={formData.merchant_name}
-              onChange={handleInputChange}
-              placeholder="Enter merchant name"
-              required
-            />
-            {duplicateWarning && <span className="duplicate-warning">{duplicateWarning}</span>}
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="merchant_name">Merchant Name:</label>
+              <input
+                ref={nameInputRef}
+                type="text"
+                id="merchant_name"
+                name="merchant_name"
+                value={formData.merchant_name}
+                onChange={handleInputChange}
+                placeholder="Enter merchant name"
+                required
+              />
+              {duplicateWarning && <span className="duplicate-warning">{duplicateWarning}</span>}
+            </div>
+            <div className="form-group">
+              <label htmlFor="country">Country:</label>
+              <input
+                type="text"
+                id="country"
+                name="country"
+                value={formData.country}
+                onChange={handleInputChange}
+                placeholder="Enter country"
+                required
+              />
+            </div>
           </div>
-          <div className="form-group">
-            <label htmlFor="country">Country:</label>
-            <input
-              type="text"
-              id="country"
-              name="country"
-              value={formData.country}
-              onChange={handleInputChange}
-              placeholder="Enter country"
-              required
-            />
-          </div>
-          <div className="form-group">
-            <label htmlFor="category">Category:</label>
-            <select
-              id="category"
-              name="category"
-              value={formData.category}
-              onChange={handleInputChange}
-              className="category-select"
-            >
-              {CATEGORIES.map(cat => (
-                <option key={cat} value={cat}>{cat}</option>
-              ))}
-            </select>
+          <div className="form-row">
+            <div className="form-group">
+              <label htmlFor="category">Category:</label>
+              <select
+                id="category"
+                name="category"
+                value={formData.category}
+                onChange={handleInputChange}
+                className="category-select"
+              >
+                {CATEGORIES.map(cat => (
+                  <option key={cat} value={cat}>{cat}</option>
+                ))}
+              </select>
+            </div>
+            <div className="form-group">
+              <label htmlFor="status">Status:</label>
+              <select
+                id="status"
+                name="status"
+                value={formData.status}
+                onChange={handleInputChange}
+                className="status-select"
+              >
+                {STATUSES.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div className="form-buttons">
             <button type="submit" className="btn-primary">
@@ -609,7 +849,7 @@ function App() {
             </button>
             {editingId && (
               <button type="button" className="btn-secondary" onClick={handleCancel}>
-                Cancel
+                Cancel (Esc)
               </button>
             )}
           </div>
@@ -638,6 +878,16 @@ function App() {
                   <option key={cat} value={cat}>{cat}</option>
                 ))}
               </select>
+              <select
+                value={filterStatus}
+                onChange={(e) => setFilterStatus(e.target.value)}
+                className="status-filter"
+              >
+                <option value="All">All Statuses</option>
+                {STATUSES.map(s => (
+                  <option key={s} value={s}>{s}</option>
+                ))}
+              </select>
             </div>
             <div className="search-box">
               <input
@@ -653,9 +903,21 @@ function App() {
                 </button>
               )}
             </div>
-            <button className="btn-export" onClick={exportToCSV}>
-              Export CSV
-            </button>
+            <div className="action-buttons">
+              <button className="btn-export" onClick={exportToCSV}>
+                Export CSV
+              </button>
+              <label className="btn-import">
+                Import CSV
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  onChange={handleImportCSV}
+                  style={{ display: 'none' }}
+                />
+              </label>
+            </div>
           </div>
         </div>
 
@@ -697,14 +959,15 @@ function App() {
                   Country{getSortIcon('country')}
                 </th>
                 <th>Category</th>
+                <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
               {sortedMerchants.length === 0 ? (
                 <tr>
-                  <td colSpan="7" style={{ textAlign: 'center' }}>
-                    {searchTerm || showFavoritesOnly || filterCategory !== 'All'
+                  <td colSpan="8" style={{ textAlign: 'center' }}>
+                    {searchTerm || showFavoritesOnly || filterCategory !== 'All' || filterStatus !== 'All'
                       ? 'No merchants match your filters.'
                       : 'No merchants found. Add one above!'}
                   </td>
@@ -721,6 +984,7 @@ function App() {
                     isSelected={selectedIds.includes(merchant.id)}
                     onToggleSelect={toggleSelect}
                     category={merchantCategories[merchant.id] || 'Other'}
+                    status={merchantStatuses[merchant.id] || 'Active'}
                   />
                 ))
               )}
@@ -733,13 +997,20 @@ function App() {
         <p>Built with React, Express, and PostgreSQL</p>
       </footer>
 
-      {/* Confirmation Modal */}
+      {/* Modals and Toasts */}
       <ConfirmModal
         show={showModal}
         title="Confirm Delete"
         message={`Are you sure you want to delete ${selectedIds.length} merchant(s)? This cannot be undone.`}
         onConfirm={executeBulkDelete}
         onCancel={() => setShowModal(false)}
+      />
+
+      <Toast
+        show={showToast}
+        message={deletedMerchant ? `Deleted "${deletedMerchant.merchant_name}"` : ''}
+        onUndo={handleUndo}
+        onClose={() => { setShowToast(false); setDeletedMerchant(null); }}
       />
     </div>
   )
