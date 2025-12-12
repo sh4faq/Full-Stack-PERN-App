@@ -242,6 +242,16 @@ function App() {
   const fileInputRef = useRef(null)
 
   // Load dark mode from localStorage
+  // Safe JSON parse helper
+  const safeJsonParse = (str, fallback) => {
+    if (!str) return fallback
+    try {
+      return JSON.parse(str)
+    } catch {
+      return fallback
+    }
+  }
+
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode')
     return saved === 'true'
@@ -249,26 +259,22 @@ function App() {
 
   // Favorites stored in localStorage
   const [favorites, setFavorites] = useState(() => {
-    const saved = localStorage.getItem('merchantFavorites')
-    return saved ? JSON.parse(saved) : []
+    return safeJsonParse(localStorage.getItem('merchantFavorites'), [])
   })
 
   // Categories stored in localStorage
   const [merchantCategories, setMerchantCategories] = useState(() => {
-    const saved = localStorage.getItem('merchantCategories')
-    return saved ? JSON.parse(saved) : {}
+    return safeJsonParse(localStorage.getItem('merchantCategories'), {})
   })
 
   // Statuses stored in localStorage
   const [merchantStatuses, setMerchantStatuses] = useState(() => {
-    const saved = localStorage.getItem('merchantStatuses')
-    return saved ? JSON.parse(saved) : {}
+    return safeJsonParse(localStorage.getItem('merchantStatuses'), {})
   })
 
   // Activity log
   const [activities, setActivities] = useState(() => {
-    const saved = localStorage.getItem('merchantActivities')
-    return saved ? JSON.parse(saved) : []
+    return safeJsonParse(localStorage.getItem('merchantActivities'), [])
   })
 
   // Filter states
