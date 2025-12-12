@@ -543,9 +543,12 @@ function App() {
             })
 
             if (response.ok) {
-              const newMerchant = await response.json()
-              setMerchantCategories(prev => ({ ...prev, [newMerchant.id]: category }))
-              setMerchantStatuses(prev => ({ ...prev, [newMerchant.id]: status }))
+              const text = await response.text()
+              const newMerchant = text ? JSON.parse(text) : {}
+              if (newMerchant.id) {
+                setMerchantCategories(prev => ({ ...prev, [newMerchant.id]: category }))
+                setMerchantStatuses(prev => ({ ...prev, [newMerchant.id]: status }))
+              }
               imported++
             }
           }
@@ -574,7 +577,10 @@ function App() {
     try {
       const response = await fetch(`${API_URL}/merchants`)
       if (!response.ok) throw new Error('Failed to fetch merchants')
-      const data = await response.json()
+      const text = await response.text()
+      // Check if response is valid JSON
+      if (!text) throw new Error('Empty response from server')
+      const data = JSON.parse(text)
       setMerchants(data)
     } catch (err) {
       setError(err.message)
@@ -636,7 +642,8 @@ function App() {
       })
       if (!response.ok) throw new Error('Failed to create merchant')
 
-      const newMerchant = await response.json()
+      const text = await response.text()
+      const newMerchant = text ? JSON.parse(text) : {}
 
       setMerchantCategories(prev => ({ ...prev, [newMerchant.id]: formData.category }))
       setMerchantStatuses(prev => ({ ...prev, [newMerchant.id]: formData.status }))
@@ -746,7 +753,8 @@ function App() {
       })
 
       if (response.ok) {
-        const restored = await response.json()
+        const text = await response.text()
+        const restored = text ? JSON.parse(text) : {}
         setMerchantCategories(prev => ({ ...prev, [restored.id]: deletedMerchant.category }))
         setMerchantStatuses(prev => ({ ...prev, [restored.id]: deletedMerchant.status }))
         if (deletedMerchant.isFavorite) {
