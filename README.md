@@ -14,15 +14,20 @@ This is a merchant management system where you can add, view, edit, and delete m
 
 ### Features
 
-- **Create** new merchants with name and country
-- **Read** all merchants in a searchable table
+- **Create** new merchants with name, country, and category
+- **Read** all merchants in a searchable, sortable table
 - **Update** existing merchant information
-- **Delete** merchants with confirmation
+- **Delete** merchants with confirmation modal
 - **Search** merchants by name or country
-- **Sort** table columns (ID, Name, Country) in ascending/descending order
-- **Export to CSV** download your merchant data
-- **Dark Mode** toggle between light and dark themes
-- **Statistics dashboard** showing totals and filtered counts
+- **Sort** table columns (ID, Name, Country) ascending/descending
+- **Export to CSV** download your merchant data with all fields
+- **Dark Mode** toggle with preference saved to localStorage
+- **Favorites** star merchants and filter to show only favorites
+- **Categories** assign categories (Retail, Food, Electronics, etc.) with color-coded badges
+- **Country Flags** automatic flag emojis next to country names
+- **Bulk Actions** select multiple merchants and delete at once
+- **Duplicate Detection** warns when adding a merchant that already exists
+- **Statistics dashboard** showing totals, countries, favorites count
 - **Responsive design** that works on mobile devices
 
 ## Technologies Used
@@ -151,13 +156,17 @@ Full-Stack-PERN-App/
 ## React Concepts Used
 
 ### Hooks
-- **useState** - Managing state for merchants, form data, loading, errors, search terms, and success messages
-- **useEffect** - Fetching merchants when the component first loads
+- **useState** - Managing state for merchants, form data, loading, errors, search terms, favorites, categories, dark mode, and selected items
+- **useEffect** - Fetching merchants on mount, syncing localStorage for dark mode/favorites/categories
 
 ### Components & Props
 - **StatsCard** - Receives `title`, `value`, and `color` props to display statistics
 - **LoadingSpinner** - Simple loading indicator component
-- **MerchantRow** - Receives `merchant`, `onEdit`, and `onDelete` props for each table row
+- **MerchantRow** - Receives `merchant`, `onEdit`, `onDelete`, `onToggleFavorite`, `isFavorite`, `isSelected`, `onToggleSelect`, and `category` props
+- **ConfirmModal** - Receives `show`, `title`, `message`, `onConfirm`, and `onCancel` props for confirmation dialogs
+
+### State Management
+The app uses localStorage to persist user preferences (dark mode, favorites, categories) across browser sessions. This way your settings are saved even after refreshing the page.
 
 ### Data Flow
 The frontend communicates with the backend using the Fetch API. When a user performs any CRUD operation, the app sends an HTTP request to the Express API, which then updates the PostgreSQL database. The UI updates automatically after each operation.
@@ -183,6 +192,8 @@ If I had more time, I would add:
 - Pagination for when there are many merchants
 - Data visualization with charts showing merchants by country
 - Batch import from CSV files
+- Drag and drop to reorder merchants
+- More detailed merchant profiles with contact info
 
 ## Author
 
